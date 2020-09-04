@@ -1,3 +1,15 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Copyright (C) 2013-2018 Efinix Inc. All rights reserved.
+//
+// Dual Clock FIFO
+//
+//********************************
+// Revisions:
+// 0.0 Initial rev
+// 0.1 Added read/write count, almost full, almost empty signal
+//********************************
+
 module dual_clock_fifo_wrapper
 #(
 	parameter	DATA_WIDTH		= 8,
@@ -16,7 +28,9 @@ module dual_clock_fifo_wrapper
 	parameter	CHECK_FULL		= "TRUE",
 	parameter	CHECK_EMPTY		= "TRUE",
 	parameter	AFULL_THRESHOLD	= 2**ADDR_WIDTH-1,
-	parameter	AEMPTY_THRESHOLD= 1
+	parameter	AEMPTY_THRESHOLD= 1,
+	parameter	AFULL_OFFSET	= 2,
+	parameter	AEMPTY_OFFSET	= 2
 )
 (
 	input						i_arst,
@@ -55,7 +69,9 @@ generate
 				.CHECK_FULL			("TRUE"),
 				.CHECK_EMPTY		("TRUE"),
 				.AFULL_THRESHOLD	(AFULL_THRESHOLD),
-				.AEMPTY_THRESHOLD	(AEMPTY_THRESHOLD)
+				.AEMPTY_THRESHOLD	(AEMPTY_THRESHOLD),
+				.AFULL_OFFSET		(AFULL_OFFSET),
+				.AEMPTY_OFFSET		(AEMPTY_OFFSET)
 			)
 			inst_dual_clock_fifo
 			(
@@ -89,7 +105,9 @@ generate
 				.CHECK_FULL			("TRUE"),
 				.CHECK_EMPTY		("TRUE"),
 				.AFULL_THRESHOLD	(AFULL_THRESHOLD),
-				.AEMPTY_THRESHOLD	(AEMPTY_THRESHOLD)
+				.AEMPTY_THRESHOLD	(AEMPTY_THRESHOLD),
+				.AFULL_OFFSET		(AFULL_OFFSET),
+				.AEMPTY_OFFSET		(AEMPTY_OFFSET)
 			)
 			inst_dual_clock_fifo
 			(
@@ -124,7 +142,9 @@ generate
 			.CHECK_FULL			(CHECK_FULL),
 			.CHECK_EMPTY		(CHECK_EMPTY),
 			.AFULL_THRESHOLD	(AFULL_THRESHOLD),
-			.AEMPTY_THRESHOLD	(AEMPTY_THRESHOLD)
+			.AEMPTY_THRESHOLD	(AEMPTY_THRESHOLD),
+			.AFULL_OFFSET		(AFULL_OFFSET),
+			.AEMPTY_OFFSET		(AEMPTY_OFFSET)
 		)
 		inst_dual_clock_fifo
 		(
@@ -158,7 +178,9 @@ generate
 			.CHECK_FULL			(CHECK_FULL),
 			.CHECK_EMPTY		(CHECK_EMPTY),
 			.AFULL_THRESHOLD	(AFULL_THRESHOLD),
-			.AEMPTY_THRESHOLD	(AEMPTY_THRESHOLD)
+			.AEMPTY_THRESHOLD	(AEMPTY_THRESHOLD),
+			.AFULL_OFFSET		(AFULL_OFFSET),
+			.AEMPTY_OFFSET		(AEMPTY_OFFSET)
 		)
 		inst_dual_clock_fifo
 		(
@@ -194,7 +216,9 @@ module dual_clock_fifo
 	parameter	CHECK_FULL		= "TRUE",
 	parameter	CHECK_EMPTY		= "TRUE",
 	parameter	AFULL_THRESHOLD	= 2**ADDR_WIDTH-1,
-	parameter	AEMPTY_THRESHOLD= 1
+	parameter	AEMPTY_THRESHOLD= 1,
+	parameter	AFULL_OFFSET	= 2,
+	parameter	AEMPTY_OFFSET	= 2
 )
 (
 	input						i_arst,
@@ -524,12 +548,16 @@ assign	o_empty	= w_empty_P;
 assign	o_full	= w_full_P;
 
 //assign	o_aempty= w_empty_P;
-assign	o_aempty= w_empty_P | (rd_cnt[ADDR_WIDTH-1] & rd_cnt[ADDR_WIDTH-2] & rd_cnt[ADDR_WIDTH-3]);
 //assign	o_wcnt	= r_waddrb_1P;
-assign	o_wcnt	= wr_cnt[ADDR_WIDTH] ? {ADDR_WIDTH{1'b1}} : wr_cnt[ADDR_WIDTH-1:0];
 //assign	o_afull	= w_full_P;
-assign	o_afull	= w_full_P | wr_cnt[ADDR_WIDTH] | (wr_cnt[ADDR_WIDTH-1] & wr_cnt[ADDR_WIDTH-2] & wr_cnt[ADDR_WIDTH-3]);
 //assign	o_rcnt	= r_raddrb_1P;
+
+//assign	o_aempty= w_empty_P | (rd_cnt[ADDR_WIDTH-1] & rd_cnt[ADDR_WIDTH-2] & rd_cnt[ADDR_WIDTH-3]);
+assign	o_wcnt	= wr_cnt[ADDR_WIDTH] ? {ADDR_WIDTH{1'b1}} : wr_cnt[ADDR_WIDTH-1:0];
+//assign	o_afull	= w_full_P | wr_cnt[ADDR_WIDTH] | (wr_cnt[ADDR_WIDTH-1] & wr_cnt[ADDR_WIDTH-2] & wr_cnt[ADDR_WIDTH-3]);
 assign	o_rcnt	= w_full_P ? {ADDR_WIDTH{1'b0}} : rd_cnt[ADDR_WIDTH-1:0];
+
+assign	o_aempty= w_empty_P | (rd_cnt[ADDR_WIDTH-1:AEMPTY_OFFSET] == {ADDR_WIDTH-AEMPTY_OFFSET{1'b1}});
+assign	o_afull	= w_full_P | wr_cnt[ADDR_WIDTH] | (wr_cnt[ADDR_WIDTH-1:AFULL_OFFSET] == {ADDR_WIDTH-AFULL_OFFSET{1'b1}});
 
 endmodule
