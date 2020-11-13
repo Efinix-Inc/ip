@@ -1,26 +1,19 @@
 # ip
 
-DDIO
-	Soft one
+DDIO-Implements a soft double-data I/O functionality
 
 I2C
-	Master: stop condition to be improved
-	Slave: TODO
+	- Master: stop condition to be improved
+	- Slave: TODO
 
-Memory
-	BRAM macros
+Memory-Has some BRAM macros
 
-LFSR
-	3-bit to 35-bit, other TODO
+LFSR-Currently supports 3-bits to 35-bits, other TODO
 
-Mult
-	Multiplier macros
+Mult-Has some multiplier macros
 
-RAM Shift Reg
-	BRAM based shift register
+RAM Shift Reg-Implements a BRAM based shift register
 
-Reset
-	Reset circuit
+Reset-Implements a reset circuit
 
-Shift reg
-	Pipeline also
+Shift reg-Pipeline also
