@@ -1,3 +1,15 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Copyright (C) 2013-2018 Efinix Inc. All rights reserved.
+//
+// Dual Clock FIFO
+//
+//********************************
+// Revisions:
+// 0.0 Initial rev
+// 0.1 Added read/write count, almost full, almost empty signal
+//********************************
+
 module dual_clock_fifo_wrapper
 #(
 	parameter	DATA_WIDTH		= 8,
