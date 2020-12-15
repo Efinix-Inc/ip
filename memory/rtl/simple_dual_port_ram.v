@@ -33,7 +33,6 @@ module simple_dual_port_ram
 	reg [DATA_WIDTH-1:0] r_rdata_1P;
 	reg [DATA_WIDTH-1:0] r_rdata_2P;
 
-	integer i;
 	initial
 	begin
 	// By default the Efinix memory will initialize to 0

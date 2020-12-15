@@ -1,3 +1,10 @@
+// This is the test bench for dual_clock_fifo.v
+//
+//********************************
+//	Revisions:
+//	0.0 Initial rev
+//********************************
+
 `timescale 1ns/1ps
 
 module sim();

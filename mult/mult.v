@@ -24,11 +24,13 @@ input	clk;
 	
 input	[A_WIDTH-1:0]	a;
 input	[B_WIDTH-1:0]	b;
-output	[Q_WIDTH-1:0]	o;
+output	[Q_WIDTH  :0]	o;
 
 generate
 	if (A_SIGNED == "TRUE" && B_SIGNED == "TRUE")
 	begin
+		wire	[Q_WIDTH-1:0]w_o;
+		
 		mult_a_signed_b_signed
 		#(
 			.A_WIDTH(A_WIDTH),
@@ -42,8 +44,10 @@ generate
 			.clk(clk),
 			.a(a),
 			.b(b),
-			.o(o)
+			.o(w_o)
 		);
+		
+		assign	o = {w_o[Q_WIDTH-1], w_o};
 	end
 	else if (A_SIGNED == "TRUE")
 	begin
@@ -65,7 +69,7 @@ generate
 			.o(w_o)
 		);
 		
-		assign	o = w_o[Q_WIDTH-1:0];
+		assign	o = w_o;
 	end
 	else if (B_SIGNED == "TRUE")
 	begin
@@ -87,10 +91,12 @@ generate
 			.o(w_o)
 		);
 		
-		assign	o = w_o[Q_WIDTH-1:0];
+		assign	o = w_o;
 	end
 	else
 	begin
+		wire	[Q_WIDTH-1:0]w_o;
+		
 		mult_a_unsigned_b_unsigned
 		#(
 			.A_WIDTH(A_WIDTH),
@@ -104,8 +110,10 @@ generate
 			.clk(clk),
 			.a(a),
 			.b(b),
-			.o(o)
+			.o(w_o)
 		);
+		
+		assign	o = {1'b0, w_o};
 	end
 endgenerate
 

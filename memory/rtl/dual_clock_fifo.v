@@ -16,7 +16,9 @@ module dual_clock_fifo_wrapper
 	parameter	CHECK_FULL		= "TRUE",
 	parameter	CHECK_EMPTY		= "TRUE",
 	parameter	AFULL_THRESHOLD	= 2**ADDR_WIDTH-1,
-	parameter	AEMPTY_THRESHOLD= 1
+	parameter	AEMPTY_THRESHOLD= 1,
+	parameter	AFULL_OFFSET	= 2,
+	parameter	AEMPTY_OFFSET	= 2
 )
 (
 	input						i_arst,
@@ -55,7 +57,9 @@ generate
 				.CHECK_FULL			("TRUE"),
 				.CHECK_EMPTY		("TRUE"),
 				.AFULL_THRESHOLD	(AFULL_THRESHOLD),
-				.AEMPTY_THRESHOLD	(AEMPTY_THRESHOLD)
+				.AEMPTY_THRESHOLD	(AEMPTY_THRESHOLD),
+				.AFULL_OFFSET		(AFULL_OFFSET),
+				.AEMPTY_OFFSET		(AEMPTY_OFFSET)
 			)
 			inst_dual_clock_fifo
 			(
@@ -89,7 +93,9 @@ generate
 				.CHECK_FULL			("TRUE"),
 				.CHECK_EMPTY		("TRUE"),
 				.AFULL_THRESHOLD	(AFULL_THRESHOLD),
-				.AEMPTY_THRESHOLD	(AEMPTY_THRESHOLD)
+				.AEMPTY_THRESHOLD	(AEMPTY_THRESHOLD),
+				.AFULL_OFFSET		(AFULL_OFFSET),
+				.AEMPTY_OFFSET		(AEMPTY_OFFSET)
 			)
 			inst_dual_clock_fifo
 			(
@@ -124,7 +130,9 @@ generate
 			.CHECK_FULL			(CHECK_FULL),
 			.CHECK_EMPTY		(CHECK_EMPTY),
 			.AFULL_THRESHOLD	(AFULL_THRESHOLD),
-			.AEMPTY_THRESHOLD	(AEMPTY_THRESHOLD)
+			.AEMPTY_THRESHOLD	(AEMPTY_THRESHOLD),
+			.AFULL_OFFSET		(AFULL_OFFSET),
+			.AEMPTY_OFFSET		(AEMPTY_OFFSET)
 		)
 		inst_dual_clock_fifo
 		(
@@ -158,7 +166,9 @@ generate
 			.CHECK_FULL			(CHECK_FULL),
 			.CHECK_EMPTY		(CHECK_EMPTY),
 			.AFULL_THRESHOLD	(AFULL_THRESHOLD),
-			.AEMPTY_THRESHOLD	(AEMPTY_THRESHOLD)
+			.AEMPTY_THRESHOLD	(AEMPTY_THRESHOLD),
+			.AFULL_OFFSET		(AFULL_OFFSET),
+			.AEMPTY_OFFSET		(AEMPTY_OFFSET)
 		)
 		inst_dual_clock_fifo
 		(
@@ -194,7 +204,9 @@ module dual_clock_fifo
 	parameter	CHECK_FULL		= "TRUE",
 	parameter	CHECK_EMPTY		= "TRUE",
 	parameter	AFULL_THRESHOLD	= 2**ADDR_WIDTH-1,
-	parameter	AEMPTY_THRESHOLD= 1
+	parameter	AEMPTY_THRESHOLD= 1,
+	parameter	AFULL_OFFSET	= 2,
+	parameter	AEMPTY_OFFSET	= 2
 )
 (
 	input						i_arst,
@@ -239,6 +251,11 @@ reg		[ADDR_WIDTH-1:0]r_raddrg_2P;
 
 reg		[LATENCY-1:0]	r_empty;
 reg		[LATENCY:0]		r_full;
+
+reg		[ADDR_WIDTH:0]	r_raddrb_2P;
+reg		[ADDR_WIDTH-1:0]r_raddrg_PP;
+reg		[ADDR_WIDTH:0]	r_raddrb_3P;
+reg		[ADDR_WIDTH-1:0]r_raddrg_3P;
 
 wire	[ADDR_WIDTH:0]	w_waddrb_1P;
 wire					w_wflag_1P;
@@ -396,17 +413,27 @@ begin
 	if (i_arst)
 	begin
 		r_re_1P			<= 1'b0;
-		r_raddrb_1P		<= {ADDR_WIDTH{1'b0}};
+		r_raddrb_1P		<= {ADDR_WIDTH+1{1'b0}};
 		r_rflag_1P		<= 1'b0;
 		r_raddrg_1P		<= {ADDR_WIDTH{1'b0}};
 		r_rflag_2P		<= 1'b0;
 		r_raddrg_2P		<= {ADDR_WIDTH{1'b0}};
 		
 		r_empty[0]		<= 1'b1;
+		
+		r_raddrb_2P		<= {ADDR_WIDTH+1{1'b0}};
+		r_raddrg_PP		<= {ADDR_WIDTH{1'b0}};
+		r_raddrb_3P		<= {ADDR_WIDTH+1{1'b0}};
+		r_raddrg_3P		<= {ADDR_WIDTH{1'b0}};
 	end
 	else
 	begin
 		r_re_1P	<= 1'b0;
+		
+		r_raddrb_2P		<= r_raddrb_1P;
+		r_raddrg_PP		<= r_raddrg_1P;
+		r_raddrb_3P		<= r_raddrb_2P;
+		r_raddrg_3P		<= r_raddrg_PP;
 		
 //		if (CHECK_FULL == "TRUE")
 		if (CHECK_EMPTY == "TRUE")
@@ -524,12 +551,16 @@ assign	o_empty	= w_empty_P;
 assign	o_full	= w_full_P;
 
 //assign	o_aempty= w_empty_P;
-assign	o_aempty= w_empty_P | (rd_cnt[ADDR_WIDTH-1] & rd_cnt[ADDR_WIDTH-2] & rd_cnt[ADDR_WIDTH-3]);
 //assign	o_wcnt	= r_waddrb_1P;
-assign	o_wcnt	= wr_cnt[ADDR_WIDTH] ? {ADDR_WIDTH{1'b1}} : wr_cnt[ADDR_WIDTH-1:0];
 //assign	o_afull	= w_full_P;
-assign	o_afull	= w_full_P | wr_cnt[ADDR_WIDTH] | (wr_cnt[ADDR_WIDTH-1] & wr_cnt[ADDR_WIDTH-2] & wr_cnt[ADDR_WIDTH-3]);
 //assign	o_rcnt	= r_raddrb_1P;
+
+//assign	o_aempty= w_empty_P | (rd_cnt[ADDR_WIDTH-1] & rd_cnt[ADDR_WIDTH-2] & rd_cnt[ADDR_WIDTH-3]);
+assign	o_wcnt	= wr_cnt[ADDR_WIDTH] ? {ADDR_WIDTH{1'b1}} : wr_cnt[ADDR_WIDTH-1:0];
+//assign	o_afull	= w_full_P | wr_cnt[ADDR_WIDTH] | (wr_cnt[ADDR_WIDTH-1] & wr_cnt[ADDR_WIDTH-2] & wr_cnt[ADDR_WIDTH-3]);
 assign	o_rcnt	= w_full_P ? {ADDR_WIDTH{1'b0}} : rd_cnt[ADDR_WIDTH-1:0];
+
+assign	o_aempty= w_empty_P | (rd_cnt[ADDR_WIDTH-1:AEMPTY_OFFSET] == {ADDR_WIDTH-AEMPTY_OFFSET{1'b1}});
+assign	o_afull	= w_full_P | wr_cnt[ADDR_WIDTH] | (wr_cnt[ADDR_WIDTH-1:AFULL_OFFSET] == {ADDR_WIDTH-AFULL_OFFSET{1'b1}});
 
 endmodule
